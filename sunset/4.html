@@ -44,27 +44,27 @@
 
       // Функция для корректировки положения видео
       const adjustVideoOrientation = () => {
-        const videoEntity = document.querySelector("a-video");
-        if (!videoEntity) return;
+  const videoEntity = document.querySelector("a-video");
+  if (!videoEntity) return;
 
-        if (window.orientation === 90 || window.orientation === -90 || window.innerWidth > window.innerHeight) {
-          // Горизонтальная ориентация
-          videoEntity.setAttribute("rotation", "0 0 ");
-          videoEntity.setAttribute("width", "0.73");
-          videoEntity.setAttribute("height", "1.1");
-        } else {
-          // Вертикальная ориентация
-          videoEntity.setAttribute("rotation", "0 0 90");
-          videoEntity.setAttribute("width", "1.1");
-          videoEntity.setAttribute("height", "0.73");
-        }
-      };
+  if (window.orientation === 90 || window.orientation === -90 || window.innerWidth > window.innerHeight) {
+    // Горизонтальная ориентация
+    videoEntity.setAttribute("rotation", "0 0 90"); // Поворот на 90 градусов
+    videoEntity.setAttribute("width", "0.73"); // Ширина
+    videoEntity.setAttribute("height", "1.1"); // Высота
+  } else {
+    // Вертикальная ориентация
+    videoEntity.setAttribute("rotation", "0 0 0"); // Без поворота
+    videoEntity.setAttribute("width", "1.1"); // Ширина
+    videoEntity.setAttribute("height", "0.73"); // Высота
+  }
+};
 
-      // Обработчик изменения ориентации устройства
-      window.addEventListener("orientationchange", adjustVideoOrientation);
+// Обработчик изменения ориентации устройства
+window.addEventListener("orientationchange", adjustVideoOrientation);
 
-      // Корректировка положения видео при загрузке страницы
-      window.addEventListener("load", adjustVideoOrientation);
+// Корректировка положения видео при загрузке страницы
+window.addEventListener("load", adjustVideoOrientation);
     </script>
   </head>
   <body class="bg-[url('/image/bg.png')] bg-cover">
