@@ -49,14 +49,14 @@
 
   if (window.orientation === 90 || window.orientation === -90 || window.innerWidth > window.innerHeight) {
     // Горизонтальная ориентация
-    videoEntity.setAttribute("rotation", "0 0 90"); // Поворот на 90 градусов
-    videoEntity.setAttribute("width", "0.73"); // Ширина
-    videoEntity.setAttribute("height", "1.1"); // Высота
+    videoEntity.setAttribute("rotation", "0 0 0"); // Поворот на 90 градусов
+    videoEntity.setAttribute("height", "0.73"); // Ширина
+    videoEntity.setAttribute("width", "1.1"); // Высота
   } else {
     // Вертикальная ориентация
-    videoEntity.setAttribute("rotation", "0 0 0"); // Без поворота
-    videoEntity.setAttribute("width", "1.1"); // Ширина
-    videoEntity.setAttribute("height", "0.73"); // Высота
+    videoEntity.setAttribute("rotation", "0 0 90"); // Без поворота
+    videoEntity.setAttribute("width", "0.73"); // Ширина
+    videoEntity.setAttribute("height", "1.1"); // Высота
   }
 };
 
