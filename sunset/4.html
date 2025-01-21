@@ -43,55 +43,14 @@
       });
 
 
-      window.onresize = async function () {
-  const scene = document.querySelector('a-scene');
-  const mindarSystem = scene.systems["mindar-image-system"];
-
-  // Пауза системы MindAR
-  mindarSystem.pause();
-
-  // Удаляем видеоэлемент
-  const video = document.querySelector('video');
-  if (video) {
-    video.remove();
-  }
-
-  // Создаем новый видеоэлемент
-  const assets = document.querySelector('a-assets');
-  const newVideo = document.createElement('video');
-  newVideo.id = 'video4';
-  newVideo.loop = true;
-  newVideo.muted = true;
-  newVideo.playsinline = true;
-  newVideo.crossOrigin = 'anonymous';
-  newVideo.src = '4.mp4';
-
-  // Ждем, пока видео загрузится
-  await new Promise((resolve) => {
-    newVideo.addEventListener('loadeddata', resolve, { once: true });
-  });
-
-  // Добавляем видео обратно в сцену
-  assets.appendChild(newVideo);
-
-  // Обновляем матрицу для всех целей
-  Array.from(document.querySelectorAll('[mindar-image-target]')).forEach((element) => {
-    element.components['mindar-image-target'].updateWorldMatrix();
-  });
-
-  // Перезапускаем систему MindAR
-  mindarSystem.stop(); // Полная остановка системы
-  mindarSystem.start(); // Полный перезапуск системы
-
-  // Связываем видео с элементом a-video
-  const videoEntity = document.querySelector('a-video');
-  videoEntity.setAttribute('src', '#video4');
-
-  // Принудительно запускаем видео (если браузер блокирует автовоспроизведение)
-  newVideo.play().catch((error) => {
-    console.error('Ошибка воспроизведения видео:', error);
-  });
-};
+      window.onresize = function () {
+document.querySelector('a-scene').systems["mindar-image-system"].pause()
+//document.querySelector('video').remove();
+Array.from(document.querySelectorAll('[mindar-image-target]')).forEach((element,index) => {
+element.components['mindar-image-target'].updateWorldMatrix(null, )
+});
+document.querySelector('a-scene').systems["mindar-image-system"]._startVideo()
+}
     </script>
   </head>
   <body class="bg-[url('/image/bg.png')] bg-cover">
