@@ -42,31 +42,7 @@
         },
       });
 
-/*       const adjustVideoOrientation = () => {
-  const videoEntity = document.querySelector("a-video");
-  if (!videoEntity) return;
 
-  if (window.innerWidth > window.innerHeight) {
-    // Альбомная ориентация
-    videoEntity.setAttribute("rotation", "0 0 0"); // Поворот на 90 градусов
-    videoEntity.setAttribute("width", "1.1"); // Ширина
-    videoEntity.setAttribute("height", "0.73"); // Высота
-  } else {
-    // Портретная ориентация
-    videoEntity.setAttribute("rotation", "0 0 0"); // Без поворота
-    videoEntity.setAttribute("width", "1.1"); // Ширина
-    videoEntity.setAttribute("height", "0.73"); // Высота
-  }
-};
-
-// Обработчик изменения ориентации устройства
-window.addEventListener("orientationchange", adjustVideoOrientation);
-
-// Корректировка положения видео при загрузке страницы
-window.addEventListener("load", adjustVideoOrientation);
-
-// Проверка ориентации при изменении размера окна
-window.addEventListener("resize", adjustVideoOrientation); */
 window.onresize = function () {
 document.querySelector('a-scene').systems["mindar-image-system"].pause()
 document.querySelector('video').remove();
@@ -74,6 +50,7 @@ Array.from(document.querySelectorAll('[mindar-image-target]')).forEach((element,
 element.components['mindar-image-target'].updateWorldMatrix(null, )
 });
 document.querySelector('a-scene').systems["mindar-image-system"]._startVideo()
+playVideo('#video4')
 }
     </script>
   </head>
