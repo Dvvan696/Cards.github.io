@@ -41,6 +41,23 @@
           });
         },
       });
+
+      window.addEventListener('resize', function() {
+          const isPortrait = window.innerHeight > window.innerWidth;
+          const aVideoElement = document.querySelector('a-video');
+
+          if (aVideoElement) {
+              if (isPortrait) {
+                  aVideoElement.setAttribute('rotation', '0 0 0');
+              } else {
+                  aVideoElement.setAttribute('rotation', '0 0 90');
+              }
+          }
+      });
+
+      window.addEventListener('load', function() {
+          window.dispatchEvent(new Event('resize'));
+      });
     </script>
   </head>
   <body class="bg-[url('/image/bg.png')] bg-cover">
