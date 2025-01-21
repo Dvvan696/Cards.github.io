@@ -42,17 +42,14 @@
         },
       });
 
-      // Обработчик изменения ориентации устройства
       window.addEventListener("orientationchange", () => {
         const videoEntity = document.querySelector("a-video");
         if (window.orientation === 90 || window.orientation === -90) {
-          // Горизонтальная ориентация
-          videoEntity.setAttribute("rotation", "0 0 90");
+
           videoEntity.setAttribute("width", "0.73");
           videoEntity.setAttribute("height", "1.1");
         } else {
-          // Вертикальная ориентация
-          videoEntity.setAttribute("rotation", "0 0 0");
+
           videoEntity.setAttribute("width", "1.1");
           videoEntity.setAttribute("height", "0.73");
         }
