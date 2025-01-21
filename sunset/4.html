@@ -68,7 +68,7 @@
 
   // Ждем, пока видео загрузится
   await new Promise((resolve) => {
-    newVideo.addEventListener('loadeddata', resolve);
+    newVideo.addEventListener('loadeddata', resolve, { once: true });
   });
 
   // Добавляем видео обратно в сцену
@@ -80,11 +80,17 @@
   });
 
   // Перезапускаем систему MindAR
-  mindarSystem._startVideo();
+  mindarSystem.stop(); // Полная остановка системы
+  mindarSystem.start(); // Полный перезапуск системы
 
   // Связываем видео с элементом a-video
   const videoEntity = document.querySelector('a-video');
   videoEntity.setAttribute('src', '#video4');
+
+  // Принудительно запускаем видео (если браузер блокирует автовоспроизведение)
+  newVideo.play().catch((error) => {
+    console.error('Ошибка воспроизведения видео:', error);
+  });
 };
     </script>
   </head>
