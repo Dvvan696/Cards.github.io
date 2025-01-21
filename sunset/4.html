@@ -43,23 +43,20 @@
       });
 
 
-window.onresize = function () {
+      window.onresize = async function () {
   const scene = document.querySelector('a-scene');
   const mindarSystem = scene.systems["mindar-image-system"];
 
+  // Пауза системы MindAR
   mindarSystem.pause();
 
+  // Удаляем видеоэлемент
   const video = document.querySelector('video');
   if (video) {
     video.remove();
   }
 
-  mindarSystem._startVideo();
-
-  Array.from(document.querySelectorAll('[mindar-image-target]')).forEach((element) => {
-    element.components['mindar-image-target'].updateWorldMatrix();
-  });
-
+  // Создаем новый видеоэлемент
   const assets = document.querySelector('a-assets');
   const newVideo = document.createElement('video');
   newVideo.id = 'video4';
@@ -68,7 +65,22 @@ window.onresize = function () {
   newVideo.playsinline = true;
   newVideo.crossOrigin = 'anonymous';
   newVideo.src = '4.mp4';
+
+  // Ждем, пока видео загрузится
+  await new Promise((resolve) => {
+    newVideo.addEventListener('loadeddata', resolve);
+  });
+
+  // Добавляем видео обратно в сцену
   assets.appendChild(newVideo);
+
+  // Обновляем матрицу для всех целей
+  Array.from(document.querySelectorAll('[mindar-image-target]')).forEach((element) => {
+    element.components['mindar-image-target'].updateWorldMatrix();
+  });
+
+  // Перезапускаем систему MindAR
+  mindarSystem._startVideo();
 
   // Связываем видео с элементом a-video
   const videoEntity = document.querySelector('a-video');
