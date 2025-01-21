@@ -47,14 +47,15 @@
   if (!videoEntity) return;
 
   if (window.innerWidth > window.innerHeight) {
-
-    videoEntity.setAttribute("rotation", "0 0 0");
-    videoEntity.setAttribute("height", "0.73");
-    videoEntity.setAttribute("width", "1.1"); 
+    // Альбомная ориентация
+    videoEntity.setAttribute("rotation", "0 0 0"); // Поворот на 90 градусов
+    videoEntity.setAttribute("width", "1.1"); // Ширина
+    videoEntity.setAttribute("height", "0.73"); // Высота
   } else {
-    videoEntity.setAttribute("rotation", "0 0 90");
-    videoEntity.setAttribute("width", "0.73"); 
-    videoEntity.setAttribute("height", "1.1"); 
+    // Портретная ориентация
+    videoEntity.setAttribute("rotation", "0 0 0"); // Без поворота
+    videoEntity.setAttribute("width", "0.73"); // Ширина
+    videoEntity.setAttribute("height", "1.1"); // Высота
   }
 };
 
@@ -63,6 +64,9 @@ window.addEventListener("orientationchange", adjustVideoOrientation);
 
 // Корректировка положения видео при загрузке страницы
 window.addEventListener("load", adjustVideoOrientation);
+
+// Проверка ориентации при изменении размера окна
+window.addEventListener("resize", adjustVideoOrientation);
     </script>
   </head>
   <body class="bg-[url('/image/bg.png')] bg-cover">
