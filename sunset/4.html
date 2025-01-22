@@ -56,15 +56,12 @@
     return;
   }
 
-  // Полная остановка системы MindAR
   if (mindarSystem.stop) {
     mindarSystem.stop();
   }
 
-  // Ждем, пока система полностью остановится
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  // Перезапускаем систему MindAR
   if (mindarSystem.start) {
     mindarSystem.start();
   }

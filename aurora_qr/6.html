@@ -40,14 +40,39 @@
           });
         },
       });
-      window.onresize = function () {
-document.querySelector('a-scene').systems["mindar-image-system"].pause()
-document.querySelector('video').remove();
-Array.from(document.querySelectorAll('[mindar-image-target]')).forEach((element,index) => {
-element.components['mindar-image-target'].updateWorldMatrix(null, )
-});
-document.querySelector('a-scene').systems["mindar-image-system"]._startVideo()
-}
+      window.onresize = async function () {
+  const scene = document.querySelector('a-scene');
+  if (!scene) {
+    console.error('Сцена не найдена');
+    return;
+  }
+
+  const mindarSystem = scene.systems["mindar-image-system"];
+  if (!mindarSystem) {
+    console.error('Система MindAR не найдена');
+    return;
+  }
+
+  if (mindarSystem.stop) {
+    mindarSystem.stop();
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  if (mindarSystem.start) {
+    mindarSystem.start();
+  }
+
+  // Обновляем матрицу для всех целей
+  const targets = document.querySelectorAll('[mindar-image-target]');
+  if (targets) {
+    targets.forEach((element) => {
+      if (element.components['mindar-image-target']) {
+        element.components['mindar-image-target'].updateWorldMatrix();
+      }
+    });
+  }
+};
     </script>
   </head>
   <body class="bg-[url('/image/bg.png')] bg-cover">
