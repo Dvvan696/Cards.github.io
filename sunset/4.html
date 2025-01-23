@@ -7,75 +7,56 @@
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <script>
-      const playVideo = (videoId) => {
-        const video = document.querySelector(videoId);
-        if (video && video.paused) {
-          video.play().catch((error) => {
-            console.error(`Ошибка воспроизведения видео ${videoId}:`, error);
-          });
-        }
-      };
-
-      const pauseVideo = (videoId) => {
-        const video = document.querySelector(videoId);
-        if (video && !video.paused) {
-          video.pause();
-        }
-      };
-
       AFRAME.registerComponent("mytarget", {
         schema: {
-          videoId: { type: "string" },
+          videoUrl: { type: "string" },
         },
         init: function () {
-          const videoId = this.data.videoId;
+          const videoUrl = this.data.videoUrl;
 
           this.el.addEventListener("targetFound", () => {
-            console.log(`Цель найдена: ${videoId}`);
-            playVideo(videoId);
+            console.log(`Цель найдена: ${videoUrl}`);
+            window.location.href = videoUrl; // Переход на страницу с видео
           });
 
           this.el.addEventListener("targetLost", () => {
-            console.log(`Цель потеряна: ${videoId}`);
-            pauseVideo(videoId);
+            console.log(`Цель потеряна: ${videoUrl}`);
           });
         },
       });
 
-
       window.onresize = async function () {
-  const scene = document.querySelector('a-scene');
-  if (!scene) {
-    console.error('Сцена не найдена');
-    return;
-  }
+        const scene = document.querySelector('a-scene');
+        if (!scene) {
+          console.error('Сцена не найдена');
+          return;
+        }
 
-  const mindarSystem = scene.systems["mindar-image-system"];
-  if (!mindarSystem) {
-    console.error('Система MindAR не найдена');
-    return;
-  }
+        const mindarSystem = scene.systems["mindar-image-system"];
+        if (!mindarSystem) {
+          console.error('Система MindAR не найдена');
+          return;
+        }
 
-  if (mindarSystem.stop) {
-    mindarSystem.stop();
-  }
+        if (mindarSystem.stop) {
+          mindarSystem.stop();
+        }
 
-  await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-  if (mindarSystem.start) {
-    mindarSystem.start();
-  }
+        if (mindarSystem.start) {
+          mindarSystem.start();
+        }
 
-  // Обновляем матрицу для всех целей
-  const targets = document.querySelectorAll('[mindar-image-target]');
-  if (targets) {
-    targets.forEach((element) => {
-      if (element.components['mindar-image-target']) {
-        element.components['mindar-image-target'].updateWorldMatrix();
-      }
-    });
-  }
-};
+        const targets = document.querySelectorAll('[mindar-image-target]');
+        if (targets) {
+          targets.forEach((element) => {
+            if (element.components['mindar-image-target']) {
+              element.components['mindar-image-target'].updateWorldMatrix();
+            }
+          });
+        }
+      };
     </script>
   </head>
   <body class="bg-[url('/image/bg.png')] bg-cover">
@@ -96,29 +77,11 @@
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
     >
-      <a-assets>
-        <video
-          id="video4"
-          loop
-          muted
-          playsinline
-          crossorigin="anonymous"
-          src="4.mp4"
-        ></video>
-      </a-assets>
-
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity 
-        mytarget="videoId: #video4" 
+        mytarget="videoUrl: /video-page.html" 
         mindar-image-target="targetIndex: 0">
-        <a-video
-          src="#video4"
-          position="0 0 0"
-          width="1.1"
-          height="0.73"
-          rotation="0 0 0"
-        ></a-video>
       </a-entity>
     </a-scene>
     
@@ -169,7 +132,7 @@
               <pattern id="pattern0_2019_6" patternContentUnits="objectBoundingBox" width="1" height="1">
                 <use xlink:href="#image0_2019_6" transform="scale(0.00763359)"/>
               </pattern>
-              <image id="image0_2019_6" width="131" height="131" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAACDCAYAAACunahmAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMTSURBVHgB7d2NUdtAEIbhlRvAJbgDSAVRKsAdhFQQUgHuAFOBKSEdKB0kqUDqAHew2cNiA+c7BzJGss/vM3Mjox8saT+kQzOSKnkDVZ3aYCrDWVdVtZZC2P6byYBs33WyT7YBtbWltVbHcSsFsO1Y6Th+9t9dy//STQgaPQy1HDHd7MtD0OqOfTnJrPyNDRpr2QUHdibYh5m1pq/vv+l4h7OcRgqgm1PtIVnF61hFKxwSs0hsS+jE3Vn71bfB7L0TNCIdpgM+sza3dtl/ji1t/37bGmsrepFJ0LLfCBwxq+EiU986NXObmPFaUAyr51Wixm08U6q3uxAUR9N9l/r5DPc704JihFO+tYeo3o+dyad/Lc+jZX4IitRf0b2LRs/9087DBoqT6RZMJ5q+Xt4JStYlxk0nAvQIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgAXwrBOjD8XlGyWGLeeVFUVwtBFEz4ISnYR/bzuc/B4V+59dEfuQ7hTV1Akq20b1fv784l14hbtW0FxrK43iVpfxjM1iZk+C4oR6pmocZuaMXV0CG4ERy9zRHjxB19FCyxt8DXxuzprYdpv2e5svqe/HZsC6KYfNmRfbGbto7XrzPfe2f69zi6t253JsRXRd7HtWOlhuX/tii/0sNRyxDR/Ch7LMrWeySuQduhY2OCLDHtK2OVMsA+dtU87Tw27WIrmujl1tDqORgqg451+wzWjlb7i6FrJG+jwHaBwlOqkEDr8IxXf1AH/A7zTAkuLgh0aAAAAAElFTkSuQmCC"/>
+              <image id="image0_2019_6" width="131" height="131" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAACDCAYAAACunahmAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMTSURBVHgB7d2NUdtAEIbhlRvAJbgDSAVRKsAdhFQQUgHuAFOBKSEdKB0kqUDqAHew2cNiA+c7BzJGss/vM3Mjox8saT+kQzOSKnkDVZ3aYCrDWVdVtZZC2P6byYBs33WyT7YBtbWltVbHcSsFsO1Y6Th+9t9dy//STQgaPQy1HDHd7MtD0OqOfTnJrPyNDRpr2QUHdibYh5m1pq/vv+l4h7OcRgqgm1PtIVnF61hFKxwSs0hsS+jE3Vn71bfB7L0TNCIdpgM+sza3dtl/ji1t/37bGmsrepFJ0LLfCBwxq+EiU986NXObmPFaUAyr51Wixm08U6q3uxAUR9N9l/r5DPc704JihFO+tYeo3o+dyad/Lc+jZX4IitRf0b2LRs/9087DBoqT6RZMJ5q+Xt4JStYlxk0nAvQIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgAXwrBOjD8XlGyWGLeeVFUVwtBFEz4ISnYR/bzuc/B4V+59dEfuQ7hTV1Akq20b1fv784l14hbtW0FxrK43iVpfxjM1iZk+C4oR6pmocZuaMXV0CG4ERy9zRHjxB19FCyxt8DXxuzprYdpv2e5svqe/HZsC6KYfNmRfbGbto7XrzPfe2f69zi6t253JsRXRd7HtWOlhuX/tii/0sNRyxDR/Ch7LMrWeySuQduhY2OCLDHtK2OVMsA+dtU87Tw27WIrmujl1tDqORgqg453+wzWjlb7i6FrJG+jwHaBwlOqkEDr8IxXf1AH/A7zTAkuLgh0aAAAAAElFTkSuQmCC"/>
             </defs>
           </svg>
         </div>
