@@ -31,6 +31,7 @@
       });
 
       window.onresize = async function () {
+        document.querySelector('a-scene').systems["mindar-image-system"].pause();
         const scene = document.querySelector('a-scene');
         if (!scene) {
           console.error('Сцена не найдена');
