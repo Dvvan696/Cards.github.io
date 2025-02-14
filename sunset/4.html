@@ -7,6 +7,7 @@
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <script>
+      let ignoreNextTargetFound = false;
       AFRAME.registerComponent("mytarget", {
         schema: {
           videoUrl: { type: "string" },
@@ -16,19 +17,26 @@
           let isTargetFound = false;
 
           this.el.addEventListener("targetFound", () => {
-            if (!isTargetFound) {
-            console.log(`Цель найдена: ${videoUrl}`);
-            window.location.href = videoUrl;
-            isTargetFound = true;
-            }
-          });
+      if (ignoreNextTargetFound) {
+        console.log("Игнорируем первый targetFound после ресайза.");
+        ignoreNextTargetFound = false;
+        return;
+      }
 
-          this.el.addEventListener("targetLost", () => {
-            console.log(`Цель потеряна: ${videoUrl}`);
-            isTargetFound = false;
-          });
-        },
-      });
+      if (!isTargetFound) {
+        console.log(`Цель найдена: ${videoUrl}`);
+        window.location.href = videoUrl;
+        isTargetFound = true;
+      }
+    });
+
+    this.el.addEventListener("targetLost", () => {
+      console.log(`Цель потеряна: ${videoUrl}`);
+      isTargetFound = false;
+    });
+  },
+});
+
 
       window.onresize = async function () {
         const scene = document.querySelector('a-scene');
@@ -53,6 +61,8 @@
           mindarSystem.start();
         }
 
+        ignoreNextTargetFound = true;
+
         const targets = document.querySelectorAll('[mindar-image-target]');
         if (targets) {
           targets.forEach((element) => {
@@ -63,21 +73,6 @@
         }
       };
 
-      window.addEventListener("resize", async function () {
-  const scene = document.querySelector("a-scene");
-  if (!scene) return;
-
-  const mindarSystem = scene.systems["mindar-image-system"];
-  if (mindarSystem && mindarSystem.stop) {
-    mindarSystem.stop();
-  }
-
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  if (mindarSystem && mindarSystem.start) {
-    mindarSystem.start();
-  }
-});
     </script>
   </head>
   <body class="bg-[url('/image/bg.png')] bg-cover">
