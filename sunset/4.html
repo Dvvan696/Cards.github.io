@@ -42,7 +42,7 @@
           mindarSystem.stop();
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         if (mindarSystem.start) {
           mindarSystem.start();
@@ -62,7 +62,7 @@
   <body class="bg-[url('/image/bg.png')] bg-cover">
     <!-- Четвертая сцена -->
     <a-scene
-      mindar-image="imageTargetSrc: targets4.mind; 
+      <!-- mindar-image="imageTargetSrc: targets4.mind; 
       filterMinCF:0.0001; 
       filterBeta:0.1; 
       filterFrequency:40; 
@@ -75,7 +75,7 @@
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false" -->
     >
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
