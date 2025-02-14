@@ -13,14 +13,19 @@
         },
         init: function () {
           const videoUrl = this.data.videoUrl;
+          let isTargetFound = false;
 
           this.el.addEventListener("targetFound", () => {
+            if (!isTargetFound) {
             console.log(`Цель найдена: ${videoUrl}`);
-            window.location.href = videoUrl; // Переход на страницу с видео
+            window.location.href = videoUrl;
+            isTargetFound = true;
+            }
           });
 
           this.el.addEventListener("targetLost", () => {
             console.log(`Цель потеряна: ${videoUrl}`);
+            isTargetFound = false;
           });
         },
       });
