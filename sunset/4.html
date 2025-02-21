@@ -8,14 +8,21 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <script>
-      let ignoreNextTargetFound = false;
+
       AFRAME.registerComponent("mytarget", {
         schema: {
           videoUrl: { type: "string" },
         },
         init: function () {
           const videoUrl = this.data.videoUrl;
-          let isTargetFound = false;
+        const modal = document.getElementById("videoModal");
+        const videoElement = document.getElementById("popupVideo");
+        const videoSource = document.getElementById("videoSource");
+        const closeBtn = document.querySelector(".close");
+        let isTargetFound = false;
+        let isVideoPlaying = false;         // Флаг, чтобы отслеживать, открыто ли видео
+        let ignoreNextTargetFound = false;
+
 
           this.el.addEventListener("targetFound", () => {
       if (ignoreNextTargetFound) {
@@ -24,17 +31,36 @@
         return;
       }
 
-      if (!isTargetFound) {
-        console.log(`Цель найдена: ${videoUrl}`);
-        window.location.href = videoUrl;
-        isTargetFound = true;
-      }
-    });
+      if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
+          console.log(`Цель найдена: ${videoUrl}`);
+          videoSource.src = videoUrl;
+          videoElement.load();
+          modal.style.display = "flex";
+          videoElement.play();
+          isVideoPlaying = true;
+        }
+      });
 
-    this.el.addEventListener("targetLost", () => {
-      console.log(`Цель потеряна: ${videoUrl}`);
-      isTargetFound = false;
-    });
+      this.el.addEventListener("targetLost", () => {
+        closeVideoModal();
+      });
+
+      closeBtn.addEventListener("click", () => {
+        closeVideoModal();
+      });
+
+      window.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          closeVideoModal();
+        }
+      });
+
+      function closeVideoModal() {
+        modal.style.display = "none";
+        videoElement.pause();
+        videoElement.currentTime = 0;
+        isVideoPlaying = false; // Сбрасываем флаг при закрытии видео
+      }
   },
 });
 
