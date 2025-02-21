@@ -59,7 +59,7 @@
         modal.style.display = "none";
         videoElement.pause();
         videoElement.currentTime = 0;
-        isVideoPlaying = false; // Сбрасываем флаг при закрытии видео
+        isTargetFound = false; // Сбрасываем флаг при закрытии видео
       }
   },
 });
@@ -89,6 +89,7 @@
         }
 
         ignoreNextTargetFound = true;
+        isTargetFound = false;
 
         const targets = document.querySelectorAll('[mindar-image-target]');
         if (targets) {
