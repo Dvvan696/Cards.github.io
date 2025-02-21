@@ -20,7 +20,6 @@
         const videoSource = document.getElementById("videoSource");
         const closeBtn = document.querySelector(".close");
         let isTargetFound = false;
-        let isVideoPlaying = false;         // Флаг, чтобы отслеживать, открыто ли видео
         let ignoreNextTargetFound = false;
 
 
@@ -31,21 +30,22 @@
         return;
       }
 
-      if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
+        if (!isTargetFound) {
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
           videoElement.load();
           modal.style.display = "flex";
           videoElement.play();
-          isVideoPlaying = true;
-        }
-      });
+        isTargetFound = true;
+      }
+    });
 
       this.el.addEventListener("targetLost", () => {
         closeVideoModal();
       });
 
       closeBtn.addEventListener("click", () => {
+        isTargetFound = false;
         closeVideoModal();
       });
 
