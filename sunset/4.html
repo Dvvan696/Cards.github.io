@@ -19,14 +19,21 @@
       const videoElement = document.getElementById("popupVideo");
       const videoSource = document.getElementById("videoSource");
       const closeBtn = document.querySelector(".close");
-
+      
       let isVideoPlaying = false; // Флаг, чтобы отслеживать, открыто ли видео
       let ignoreNextTargetFound = false; // Добавляем переменную для отслеживания игнорирования события
 
 
       this.el.addEventListener("targetFound", () => {
-        if (!ignoreNextTargetFound) {
-          if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
+        if (ignoreNextTargetFound) { // Проверяем, нужно ли игнорировать событие
+          console.log("Игнорируем первый targetFound после ресайза.");
+          ignoreNextTargetFound = false; // Сбрасываем флаг
+          return;
+        }
+        
+        else{
+
+        if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
           videoElement.load();
@@ -34,13 +41,7 @@
           videoElement.play();
           isVideoPlaying = true;
         }
-          
-          else {
-            console.log("Игнорируем первый targetFound после ресайза.");
-            ignoreNextTargetFound = false; // Сбрасываем флаг
-            return;
-          }
-        }
+      }
       });
 
       this.el.addEventListener("targetLost", () => {
