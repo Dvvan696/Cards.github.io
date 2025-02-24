@@ -1,0 +1,19 @@
+{
+  "name": "sf-education",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "aa": "npx tailwindcss -i ./input.css -o ./css/style.css --watch",
+    "min": "npx tailwindcss -i ./input.css -o ./css/style.css --minify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  },
+  "dependencies": {
+    "swiper": "^11.0.6"
+  }
+}

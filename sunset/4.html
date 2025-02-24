@@ -7,45 +7,44 @@
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-    <script>
+<script>
+  let ignoreNextTargetFound = false; // Добавляем переменную для отслеживания игнорирования события
 
-      AFRAME.registerComponent("mytarget", {
-        schema: {
-          videoUrl: { type: "string" },
-        },
-        init: function () {
-          const videoUrl = this.data.videoUrl;
-        const modal = document.getElementById("videoModal");
-        const videoElement = document.getElementById("popupVideo");
-        const videoSource = document.getElementById("videoSource");
-        const closeBtn = document.querySelector(".close");
-        let isTargetFound = false;
-        let ignoreNextTargetFound = false;
+  AFRAME.registerComponent("mytarget", {
+    schema: {
+      videoUrl: { type: "string" },
+    },
+    init: function () {
+      const videoUrl = this.data.videoUrl;
+      const modal = document.getElementById("videoModal");
+      const videoElement = document.getElementById("popupVideo");
+      const videoSource = document.getElementById("videoSource");
+      const closeBtn = document.querySelector(".close");
 
+      let isVideoPlaying = false; // Флаг, чтобы отслеживать, открыто ли видео
 
-          this.el.addEventListener("targetFound", () => {
-      if (ignoreNextTargetFound) {
-        console.log("Игнорируем первый targetFound после ресайза.");
-        ignoreNextTargetFound = false;
-        return;
-      }
+      this.el.addEventListener("targetFound", () => {
+        if (ignoreNextTargetFound) { // Проверяем, нужно ли игнорировать событие
+          console.log("Игнорируем первый targetFound после ресайза.");
+          ignoreNextTargetFound = false; // Сбрасываем флаг
+          return;
+        }
 
-        if (!isTargetFound) {
+        if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
           videoElement.load();
           modal.style.display = "flex";
           videoElement.play();
-        isTargetFound = true;
-      }
-    });
+          isVideoPlaying = true;
+        }
+      });
 
       this.el.addEventListener("targetLost", () => {
         closeVideoModal();
       });
 
       closeBtn.addEventListener("click", () => {
-        isTargetFound = false;
         closeVideoModal();
       });
 
@@ -59,49 +58,52 @@
         modal.style.display = "none";
         videoElement.pause();
         videoElement.currentTime = 0;
-        isTargetFound = false; // Сбрасываем флаг при закрытии видео
+        isVideoPlaying = false; // Сбрасываем флаг при закрытии видео
       }
-  },
-});
+    },
+  });
 
+  window.onresize = async function () {
+    const modal = document.getElementById("videoModal");
+    if (modal.style.display === "flex") {
+      console.log("Поворот экрана: видео уже открыто, не перезапускаем MindAR");
+      return; // Если видео уже открыто, не перезапускаем систему
+    }
 
-      window.onresize = async function () {
-        const scene = document.querySelector('a-scene');
-        if (!scene) {
-          console.error('Сцена не найдена');
-          return;
+    const scene = document.querySelector("a-scene");
+    if (!scene) {
+      console.error("Сцена не найдена");
+      return;
+    }
+
+    const mindarSystem = scene.systems["mindar-image-system"];
+    if (!mindarSystem) {
+      console.error("Система MindAR не найдена");
+      return;
+    }
+
+    if (mindarSystem.stop) {
+      mindarSystem.stop();
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    if (mindarSystem.start) {
+      mindarSystem.start();
+    }
+
+    ignoreNextTargetFound = true; // Устанавливаем флаг для игнорирования следующего события targetFound
+
+    const targets = document.querySelectorAll("[mindar-image-target]");
+    if (targets) {
+      targets.forEach((element) => {
+        if (element.components["mindar-image-target"]) {
+          element.components["mindar-image-target"].updateWorldMatrix();
         }
-
-        const mindarSystem = scene.systems["mindar-image-system"];
-        if (!mindarSystem) {
-          console.error('Система MindAR не найдена');
-          return;
-        }
-
-        if (mindarSystem.stop) {
-          mindarSystem.stop();
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        if (mindarSystem.start) {
-          mindarSystem.start();
-        }
-
-        ignoreNextTargetFound = true;
-        isTargetFound = false;
-
-        const targets = document.querySelectorAll('[mindar-image-target]');
-        if (targets) {
-          targets.forEach((element) => {
-            if (element.components['mindar-image-target']) {
-              element.components['mindar-image-target'].updateWorldMatrix();
-            }
-          });
-        }
-      };
-
-    </script>
+      });
+    }
+  };
+</script>
 
   </head>
   <body class="bg-[url('/image/bg.png')] bg-cover">
@@ -157,19 +159,20 @@
         bottom: 0;
         background: transparent;
         z-index: 2;
+        margin-top:0.5rem
       "
     >
       <div
         class="flex flex-col w-fit justify-center text-main-white border-1 border-main-white bg-main-black/25 rounded-10"
         style="
-          width: 9rem;
+          width: 9.5rem;
           font-size: 0.725rem;
           position: absolute;
           top: 0.5rem;
           padding: 0.25rem;
         "
       >
-        <div class="flex flex-row gap-2.5 items-center">
+        <div style="font-size: 0.5rem" class="flex flex-row gap-2.5 items-center">
           <svg
             style="width: 0.75rem"
             viewBox="0 0 82 80"
@@ -187,36 +190,41 @@
               fill="white"
             />
           </svg>
-          Подсказка
+          
+          <div class="scan-img">
+       <img  src="/image/scan.png" alt="" />
+</div>
+          Наведите камеру на открытку
         </div>
-        <span style="font-size: 0.5rem">Наведите камеру на открытку</span>
+        
       </div>
-     <div class=" mindar-ui-scanning flex-col" style="
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    background: transparent;
-    z-index: 2;
-">
+<!--     <div class=" mindar-ui-scanning flex-col" style="-->
+<!--    display: flex;-->
+<!--    align-items: center;-->
+<!--    justify-content: center;-->
+<!--    position: absolute;-->
+<!--    left: 0;-->
+<!--    right: 0;-->
+<!--    top: 0;-->
+<!--    bottom: 0;-->
+<!--    background: transparent;-->
+<!--    z-index: 2;-->
+<!--">-->
     
-  <div class="scanning">
-<svg style="      margin: 2.5rem auto 0px;
-    width: 100%;
-    height: 4rem;" viewBox="0 0 131 131" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<rect width="131" height="131" fill="url(#pattern0_2019_6)"/>
-<defs>
-<pattern id="pattern0_2019_6" patternContentUnits="objectBoundingBox" width="1" height="1">
-<use xlink:href="#image0_2019_6" transform="scale(0.00763359)"/>
-</pattern>
-<image id="image0_2019_6" width="131" height="131" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAACDCAYAAACunahmAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMTSURBVHgB7d2NUdtAEIbhlRvAJbgDSAVRKsAdhFQQUgHuAFOBKSEdKB0kqUDqAHew2cNiA+c7BzJGss/vM3Mjox8saT+kQzOSKnkDVZ3aYCrDWVdVtZZC2P6byYBs33WyT7YBtbWltVbHcSsFsO1Y6Th+9t9dy//STQgaPQy1HDHd7MtD0OqOfTnJrPyNDRpr2QUHdibYh5m1pq/vv+l4h7OcRgqgm1PtIVnF61hFKxwSs0hsS+jE3Vn71bfB7L0TNCIdvgM+sza3dtl/ji1t/37bGmsrepFJ0LLfCBwxq+EiU986NXObmPFaUAyr51Wixm08U6q3uxAUR9N9l/r5DPc704JihFO+tYeo3o+dyad/Lc+jZX4IitRf0b2LRs/9087DBoqT6RZMJ5q+Xt4JStYlxk0nAvQIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIA1wuDMU8bg9J+frqy6e6LQXFix7D0MQT59x9fVr6ml8JAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4SuFdE7xv4rQka24jbp+9lWQlKF5U8+Zp5FS3zQTFytU8vLBsKjg1yZrzKkM4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgAXwrBOjD8XlGyWGLeeVFUVwtBFEz4ISnYR/bzuc/B4V+59dEfuQ7hTV1Akq20b1fv784l14hbtW0FxrK43iVpfxjM1iZk+C4oR6pmocZuaMXV0CG4ERy9zRHjxB19FCyxt8DXxuzprYdpv2e5svqe/HZsC6KYfNmRfbGbto7XrzPfe2f69zi6t253JsRXRd7HtWOlhuX/tii/0sNRyxDR/Ch7LMrWeySuQduhY2OCLDHtK2OVMsA+dtU87Tw27WIrmujl1tDqORgqg451+wzWjlb7i6FrJG+jwHaBwlOqkEDr8IxXf1AH/A7zTAkuLgh0aAAAAAElFTkSuQmCC"/>
-</defs>
-</svg>
-</div></div>
+<!--  <div class="scanning">-->
+<!--<svg style="      margin: 2.5rem auto 0px;-->
+<!--    width: 100%;-->
+<!--    height: 4rem;" viewBox="0 0 131 131" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">-->
+<!--<rect width="131" height="131" fill="url(#pattern0_2019_6)"/>-->
+<!--<defs>-->
+<!--<pattern id="pattern0_2019_6" patternContentUnits="objectBoundingBox" width="1" height="1">-->
+<!--<use xlink:href="#image0_2019_6" transform="scale(0.00763359)"/>-->
+<!--</pattern>-->
+<!--<image id="image0_2019_6" width="131" height="131" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAACDCAYAAACunahmAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMTSURBVHgB7d2NUdtAEIbhlRvAJbgDSAVRKsAdhFQQUgHuAFOBKSEdKB0kqUDqAHew2cNiA+c7BzJGss/vM3Mjox8saT+kQzOSKnkDVZ3aYCrDWVdVtZZC2P6byYBs33WyT7YBtbWltVbHcSsFsO1Y6Th+9t9dy//STQgaPQy1HDHd7MtD0OqOfTnJrPyNDRpr2QUHdibYh5m1pq/vv+l4h7OcRgqgm1PtIVnF61hFKxwSs0hsS+jE3Vn71bfB7L0TNCIdvgM+sza3dtl/ji1t/37bGmsrepFJ0LLfCBwxq+EiU986NXObmPFaUAyr51Wixm08U6q3uxAUR9N9l/r5DPc704JihFO+tYeo3o+dyad/Lc+jZX4IitRf0b2LRs/9087DBoqT6RZMJ5q+Xt4JStYlxk0nAvQIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIA1wuDMU8bg9J+frqy6e6LQXFix7D0MQT59x9fVr6ml8JAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4SuFdE7xv4rQka24jbp+9lWQlKF5U8+Zp5FS3zQTFytU8vLBsKjg1yZrzKkM4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgAXwrBOjD8XlGyWGLeeVFUVwtBFEz4ISnYR/bzuc/B4V+59dEfuQ7hTV1Akq20b1fv784l14hbtW0FxrK43iVpfxjM1iZk+C4oR6pmocZuaMXV0CG4ERy9zRHjxB19FCyxt8DXxuzprYdpv2e5svqe/HZsC6KYfNmRfbGbto7XrzPfe2f69zi6t253JsRXRd7HtWOlhuX/tii/0sNRyxDR/Ch7LMrWeySuQduhY2OCLDHtK2OVMsA+dtU87Tw27WIrmujl1tDqORgqg451+wzWjlb7i6FrJG+jwHaBwlOqkEDr8IxXf1AH/A7zTAkuLgh0aAAAAAElFTkSuQmCC"/>-->
+<!--</defs>-->
+<!--</svg>-->
+<!--</div>-->
+<!--</div>-->
     </div>
     
 
@@ -236,9 +244,9 @@
       Ваш браузер не поддерживает видео.
     </video>
   </div>
-  <div class="scan-img">
-       <img  src="/image/scan.png" alt="" />
-</div>
+<!--  <div class="scan-img">-->
+<!--       <img  src="/image/scan.png" alt="" />-->
+<!--</div>-->
 </div>
 
 <style>
@@ -258,7 +266,7 @@
   
     .scan-img img {
     position: relative;
-    max-width: 60%;
+    max-width: 55%;
     text-align: center;
   }
   
@@ -319,7 +327,7 @@
     </div>
     
     <div id="rotate-overlay">
-    <div class="bg-[url('/image/bg.png')] bg-cover flex flex-col min-h-dvh px-12 pt-20  pb-36 gap-6 text-center justify-center items-center">
+    <div class="bg-[url('/image/bg.png')] bg-cover flex flex-col px-12 pt-20  gap-6 text-center justify-center items-center">
       Поверните экран горизонтально для лучшего опыта
     </div>
     </div>
@@ -327,10 +335,10 @@
     <style>
       #rotate-overlay {
         position: fixed;
-        top: -10vh;
+        top: -14vh;
         left: 0;
         width: 100vw;
-        height: 110vh;
+        height: 128vh;
         color: white;
         display: flex;
         justify-content: center;
@@ -340,6 +348,11 @@
         z-index: 1000;
         display: none;
       }
+      #rotate-overlay > div{
+          height:100%;
+          padding-bottom:20rem;
+      }
+      
     </style>
     <script>
       function checkOrientation() {

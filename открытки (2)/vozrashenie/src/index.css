@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Onest";
+  src: url("./fonts/Onest/Onest-Light.woff") format("woff");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Onest";
+  src: url("./fonts/Onest/Onest-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Onest";
+  src: url("./fonts/Onest/Onest-Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Onest";
+  src: url("./fonts/Onest/Onest-SemiBold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Onest";
+  src: url("./fonts/Onest/Onest-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+}
+
+html,
+body {
+  @apply text-[0.83vw] 
+   mob:text-[3.8vw];
+}
+
+.swiper-scrollbar {
+  @apply !w-4 !bg-main-accent/20 !left-0 !right-auto;
+}
+
+.swiper-scrollbar-drag {
+  @apply !w-4 !bg-main-accent;
+}
