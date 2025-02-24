@@ -8,7 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <script>
-  let ignoreNextTargetFound = false; // Добавляем переменную для отслеживания игнорирования события
 
   AFRAME.registerComponent("mytarget", {
     schema: {
@@ -22,21 +21,25 @@
       const closeBtn = document.querySelector(".close");
 
       let isVideoPlaying = false; // Флаг, чтобы отслеживать, открыто ли видео
+      let ignoreNextTargetFound = false; // Добавляем переменную для отслеживания игнорирования события
+
 
       this.el.addEventListener("targetFound", () => {
-        if (ignoreNextTargetFound) { // Проверяем, нужно ли игнорировать событие
-          console.log("Игнорируем первый targetFound после ресайза.");
-          ignoreNextTargetFound = false; // Сбрасываем флаг
-          return;
-        }
-
-        if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
+        if (!ignoreNextTargetFound) {
+          if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
           videoElement.load();
           modal.style.display = "flex";
           videoElement.play();
           isVideoPlaying = true;
+        }
+          
+          else {
+            console.log("Игнорируем первый targetFound после ресайза.");
+            ignoreNextTargetFound = false; // Сбрасываем флаг
+            return;
+          }
         }
       });
 
