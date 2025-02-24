@@ -11,75 +11,79 @@
       let ignoreNextTargetFound; // Добавляем переменную для отслеживания игнорирования события
       let isVideoPlaying = false;
 
-  AFRAME.registerComponent("mytarget", {
-    schema: {
-      videoUrl: { type: "string" },
-    },
-    init: function () {
-      const videoUrl = this.data.videoUrl;
-      const modal = document.getElementById("videoModal");
-      const videoElement = document.getElementById("popupVideo");
-      const videoSource = document.getElementById("videoSource");
-      const closeBtn = document.querySelector(".close");
-      
-       // Флаг, чтобы отслеживать, открыто ли видео
+      AFRAME.registerComponent("mytarget", {
+  schema: {
+    videoUrl: { type: "string" },
+  },
+  init: function () {
+    const videoUrl = this.data.videoUrl;
+    const modal = document.getElementById("videoModal");
+    const videoElement = document.getElementById("popupVideo");
+    const videoSource = document.getElementById("videoSource");
+    const closeBtn = document.querySelector(".close");
 
-
-      this.el.addEventListener("targetFound", () => {
-        if (ignoreNextTargetFound) { // Проверяем, нужно ли игнорировать событие
-          console.log("Игнорируем первый targetFound после ресайза.");
-          ignoreNextTargetFound = false; // Сбрасываем флаг
-          return;
-        }
-
-        else{
-
-        if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
+    this.el.addEventListener("targetFound", () => {
+      if (ignoreNextTargetFound) {
+        console.log("Игнорируем первый targetFound после ресайза.");
+        ignoreNextTargetFound = false;
+        return;
+      }
+      else {
+        if (!isVideoPlaying) {
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
-          videoElement.load();
-          videoElement.style.display = "block"; 
-          videoElement.style.opacity = "1";  
+          videoElement.load(); 
+          videoElement.style.display = "block";
+          videoElement.style.opacity = "1";
           modal.style.display = "flex";
-          videoElement.width = 854;
-          videoElement.height = 567;
-          videoElement.style.width = "100%";
-          videoElement.style.height = "auto";
-          videoElement.oncanplay = () => {
-          setTimeout(() => {
-            videoElement.play().then(() => {
-              console.log("Видео воспроизводится!");
-              console.log("Размер видео:", videoElement.videoWidth, videoElement.videoHeight);
-              isVideoPlaying = true;
-            }).catch((e) => console.error("Ошибка воспроизведения:", e));
-          }, 300); // Ждем 300 мс перед play()
-        };
-      }
-      }
-      });
 
-      this.el.addEventListener("targetLost", () => {
-        closeVideoModal();
-      });
+          videoElement.onloadedmetadata = () => {
+            console.log("Метаданные загружены. Размер видео:", videoElement.videoWidth, videoElement.videoHeight);
 
-      closeBtn.addEventListener("click", () => {
-        closeVideoModal();
-      });
+            if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+              console.error("Ошибка: Видео не загрузилось правильно. Пробуем загрузить повторно.");
+              videoElement.load();
+              return;
+            }
 
-      window.addEventListener("click", (event) => {
-        if (event.target === modal) {
-          closeVideoModal();
+            videoElement.width = videoElement.videoWidth || 854;
+            videoElement.height = videoElement.videoHeight || 567;
+
+            setTimeout(() => {
+              videoElement.play().then(() => {
+                console.log("Видео воспроизводится!");
+                console.log("Фактический размер видео:", videoElement.videoWidth, videoElement.videoHeight);
+                isVideoPlaying = true;
+              }).catch((e) => console.error("Ошибка воспроизведения:", e));
+            }, 300);
+          };
         }
-      });
-
-      function closeVideoModal() {
-        modal.style.display = "none";
-        videoElement.pause();
-        videoElement.currentTime = 0;
-        isVideoPlaying = false; // Сбрасываем флаг при закрытии видео
       }
-    },
-  });
+    });
+
+    this.el.addEventListener("targetLost", () => {
+      closeVideoModal();
+    });
+
+    closeBtn.addEventListener("click", () => {
+      closeVideoModal();
+    });
+
+    window.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeVideoModal();
+      }
+    });
+
+    function closeVideoModal() {
+      modal.style.display = "none";
+      videoElement.pause();
+      videoElement.currentTime = 0;
+      isVideoPlaying = false;
+    }
+  },
+});
+
 
   window.onresize = async function () {
     const modal = document.getElementById("videoModal");
@@ -154,17 +158,6 @@
       <a-entity 
       mytarget="videoUrl: https://avmtechnology.ru/test/WebAR/media/postcards/SunWind.mp4" 
       mindar-image-target="targetIndex: 0">
-      <a-video
-        src="https://avmtechnology.ru/test/WebAR/media/postcards/SunWind.mp4"
-        position="0 0 0"
-        width="0.0" 
-        height="0.0" 
-        rotation="0 0 0"
-        autoplay
-        muted 
-        loop 
-        playsinline
-      ></a-video>
     </a-entity>
     </a-scene>
     
