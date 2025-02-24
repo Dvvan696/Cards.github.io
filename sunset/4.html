@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <script>
+      let ignoreNextTargetFound; // Добавляем переменную для отслеживания игнорирования события
+      let isVideoPlaying = false;
 
   AFRAME.registerComponent("mytarget", {
     schema: {
@@ -20,8 +22,7 @@
       const videoSource = document.getElementById("videoSource");
       const closeBtn = document.querySelector(".close");
       
-      let isVideoPlaying = false; // Флаг, чтобы отслеживать, открыто ли видео
-      let ignoreNextTargetFound = false; // Добавляем переменную для отслеживания игнорирования события
+       // Флаг, чтобы отслеживать, открыто ли видео
 
 
       this.el.addEventListener("targetFound", () => {
@@ -30,17 +31,30 @@
           ignoreNextTargetFound = false; // Сбрасываем флаг
           return;
         }
-        
+
         else{
 
         if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
           videoElement.load();
+          videoElement.style.display = "block"; 
+          videoElement.style.opacity = "1";  
           modal.style.display = "flex";
-          videoElement.play();
-          isVideoPlaying = true;
-        }
+          videoElement.width = 854;
+          videoElement.height = 567;
+          videoElement.style.width = "100%";
+          videoElement.style.height = "auto";
+          videoElement.oncanplay = () => {
+          setTimeout(() => {
+            videoElement.play().then(() => {
+              console.log("Видео воспроизводится!");
+              console.log("Размер видео:", videoElement.videoWidth, videoElement.videoHeight);
+              isVideoPlaying = true;
+            }).catch((e) => console.error("Ошибка воспроизведения:", e));
+          }, 300); // Ждем 300 мс перед play()
+        };
+      }
       }
       });
 
@@ -69,10 +83,13 @@
 
   window.onresize = async function () {
     const modal = document.getElementById("videoModal");
+    const videoElement = document.getElementById("popupVideo");
     if (modal.style.display === "flex") {
       console.log("Поворот экрана: видео уже открыто, не перезапускаем MindAR");
       return; // Если видео уже открыто, не перезапускаем систему
     }
+    videoElement.pause();
+    videoElement.currentTime = 0;
 
     const scene = document.querySelector("a-scene");
     if (!scene) {
@@ -94,6 +111,8 @@
 
     if (mindarSystem.start) {
       mindarSystem.start();
+      const scene = document.querySelector("a-scene");
+      scene.renderer.setAnimationLoop(() => {});
     }
 
     ignoreNextTargetFound = true; // Устанавливаем флаг для игнорирования следующего события targetFound
