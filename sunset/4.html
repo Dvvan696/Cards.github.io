@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <script>
-      let ignoreNextTargetFound; // Добавляем переменную для отслеживания игнорирования события
+      let ignoreNextTargetFound = false; // Добавляем переменную для отслеживания игнорирования события
       let isVideoPlaying = false;
 
       AFRAME.registerComponent("mytarget", {
@@ -23,12 +23,15 @@
     const closeBtn = document.querySelector(".close");
 
     this.el.addEventListener("targetFound", () => {
+      console.log(`видео не играет`);
+
       if (ignoreNextTargetFound) {
         console.log("Игнорируем первый targetFound после ресайза.");
         ignoreNextTargetFound = false;
         return;
       }
-      else {
+
+
         if (!isVideoPlaying) {
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
@@ -58,7 +61,7 @@
             }, 300);
           };
         }
-      }
+      
     });
 
     this.el.addEventListener("targetLost", () => {
@@ -86,6 +89,8 @@
 
 
   window.onresize = async function () {
+    ignoreNextTargetFound = true;
+    isVideoPlaying = false; // Устанавливаем флаг для игнорирования следующего события targetFound
     const modal = document.getElementById("videoModal");
     const videoElement = document.getElementById("popupVideo");
     if (modal.style.display === "flex") {
@@ -119,7 +124,6 @@
       scene.renderer.setAnimationLoop(() => {});
     }
 
-    ignoreNextTargetFound = true; // Устанавливаем флаг для игнорирования следующего события targetFound
 
     const targets = document.querySelectorAll("[mindar-image-target]");
     if (targets) {
