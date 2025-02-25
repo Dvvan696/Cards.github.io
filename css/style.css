@@ -518,7 +518,7 @@ Make sure disabled buttons don't get the pointer cursor.
 }
 
 .modal {
-  visibility: hidden; /* Или opacity: 0; */
+  visibility: hidden;
 }
 
 .m-auto {
