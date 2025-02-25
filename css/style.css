@@ -517,6 +517,10 @@ Make sure disabled buttons don't get the pointer cursor.
   --tw-backdrop-sepia:  ;
 }
 
+.modal {
+  visibility: hidden; /* Или opacity: 0; */
+}
+
 .m-auto {
   margin: auto;
 }

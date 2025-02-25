@@ -30,6 +30,7 @@ let isVideoPlaying = false;
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
           videoElement.load();
+          modal.style.visibility = "visible";
           modal.style.display = "flex";
           videoElement.play();
           isVideoPlaying = true;
@@ -47,7 +48,7 @@ let isVideoPlaying = false;
       });
 
       function closeVideoModal() {
-        modal.style.display = "none";
+        modal.style.visibility = "hidden"; 
         videoElement.pause();
         videoElement.currentTime = 0;
         isVideoPlaying = false; // Сбрасываем флаг при закрытии видео
@@ -77,6 +78,8 @@ let isVideoPlaying = false;
     if (mindarSystem.stop) {
       mindarSystem.stop();
     }
+    ignoreNextTargetFound = true; // Устанавливаем флаг для игнорирования следующего события targetFound
+
 
     await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -84,7 +87,6 @@ let isVideoPlaying = false;
       mindarSystem.start();
     }
 
-    ignoreNextTargetFound = true; // Устанавливаем флаг для игнорирования следующего события targetFound
 
     const targets = document.querySelectorAll("[mindar-image-target]");
     if (targets) {
