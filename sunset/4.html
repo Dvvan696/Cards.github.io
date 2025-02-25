@@ -3,102 +3,64 @@
   <head>
     <meta charset="UTF-8" />
     <link href="/css/style.css" rel="stylesheet" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 viewport-fit=cover" />
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <script>
-      let ignoreNextTargetFound = false; // Добавляем переменную для отслеживания игнорирования события
-      let isVideoPlaying = false;
+let ignoreNextTargetFound = false; // Добавляем переменную для отслеживания игнорирования события
+let isVideoPlaying = false;
+  AFRAME.registerComponent("mytarget", {
+    schema: {
+      videoUrl: { type: "string" },
+    },
+    init: function () {
+      const videoUrl = this.data.videoUrl;
+      const modal = document.getElementById("videoModal");
+      const videoElement = document.getElementById("popupVideo");
+      const videoSource = document.getElementById("videoSource");
 
-      AFRAME.registerComponent("mytarget", {
-  schema: {
-    videoUrl: { type: "string" },
-  },
-  init: function () {
-    const videoUrl = this.data.videoUrl;
-    const modal = document.getElementById("videoModal");
-    const videoElement = document.getElementById("popupVideo");
-    const videoSource = document.getElementById("videoSource");
-    const closeBtn = document.querySelector(".close");
+      this.el.addEventListener("targetFound", () => {
+        if (ignoreNextTargetFound) { // Проверяем, нужно ли игнорировать событие
+          ignoreNextTargetFound = false; // Сбрасываем флаг
+          return;
+        }
 
-    this.el.addEventListener("targetFound", () => {
-      console.log(`видео не играет`);
-
-      if (ignoreNextTargetFound) {
-        console.log("Игнорируем первый targetFound после ресайза.");
-        ignoreNextTargetFound = false;
-        return;
-      }
-
-
-        if (!isVideoPlaying) {
+        if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
-          videoElement.load(); 
-          videoElement.style.display = "block";
-          videoElement.style.opacity = "1";
+          videoElement.load();
           modal.style.display = "flex";
-
-          videoElement.onloadedmetadata = () => {
-            console.log("Метаданные загружены. Размер видео:", videoElement.videoWidth, videoElement.videoHeight);
-
-            if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
-              console.error("Ошибка: Видео не загрузилось правильно. Пробуем загрузить повторно.");
-              videoElement.load();
-              return;
-            }
-
-            videoElement.width = videoElement.videoWidth || 854;
-            videoElement.height = videoElement.videoHeight || 567;
-
-            setTimeout(() => {
-              videoElement.play().then(() => {
-                console.log("Видео воспроизводится!");
-                console.log("Фактический размер видео:", videoElement.videoWidth, videoElement.videoHeight);
-                isVideoPlaying = true;
-              }).catch((e) => console.error("Ошибка воспроизведения:", e));
-            }, 300);
-          };
+          videoElement.play();
+          isVideoPlaying = true;
         }
-      
-    });
+      });
 
-    this.el.addEventListener("targetLost", () => {
-      closeVideoModal();
-    });
-
-    closeBtn.addEventListener("click", () => {
-      closeVideoModal();
-    });
-
-    window.addEventListener("click", (event) => {
-      if (event.target === modal) {
+      this.el.addEventListener("targetLost", () => {
         closeVideoModal();
+      });
+
+      window.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          closeVideoModal();
+        }
+      });
+
+      function closeVideoModal() {
+        modal.style.display = "none";
+        videoElement.pause();
+        videoElement.currentTime = 0;
+        isVideoPlaying = false; // Сбрасываем флаг при закрытии видео
       }
-    });
-
-    function closeVideoModal() {
-      modal.style.display = "none";
-      videoElement.pause();
-      videoElement.currentTime = 0;
-      isVideoPlaying = false;
-    }
-  },
-});
-
+    },
+  });
 
   window.onresize = async function () {
-    ignoreNextTargetFound = true;
-    isVideoPlaying = false; // Устанавливаем флаг для игнорирования следующего события targetFound
     const modal = document.getElementById("videoModal");
-    const videoElement = document.getElementById("popupVideo");
     if (modal.style.display === "flex") {
       console.log("Поворот экрана: видео уже открыто, не перезапускаем MindAR");
       return; // Если видео уже открыто, не перезапускаем систему
     }
-    videoElement.pause();
-    videoElement.currentTime = 0;
 
     const scene = document.querySelector("a-scene");
     if (!scene) {
@@ -120,10 +82,9 @@
 
     if (mindarSystem.start) {
       mindarSystem.start();
-      const scene = document.querySelector("a-scene");
-      scene.renderer.setAnimationLoop(() => {});
     }
 
+    ignoreNextTargetFound = true; // Устанавливаем флаг для игнорирования следующего события targetFound
 
     const targets = document.querySelectorAll("[mindar-image-target]");
     if (targets) {
@@ -162,6 +123,17 @@
       <a-entity 
       mytarget="videoUrl: https://avmtechnology.ru/test/WebAR/media/postcards/SunWind.mp4" 
       mindar-image-target="targetIndex: 0">
+      <a-video
+        src="https://avmtechnology.ru/test/WebAR/media/postcards/SunWind.mp4"
+        position="0 0 0"
+        width="0.0" 
+        height="0.0" 
+        rotation="0 0 0"
+        autoplay
+        muted 
+        loop 
+        playsinline
+      ></a-video>
     </a-entity>
     </a-scene>
     
@@ -188,7 +160,7 @@
           width: 9.5rem;
           font-size: 0.725rem;
           position: absolute;
-          top: 0.5rem;
+          top: 0.42rem;
           padding: 0.25rem;
         "
       >
@@ -250,12 +222,11 @@
 
   
     
-    <div id="videoModal" class="modal">
+    <div id="videoModal" class="modal" style="display: none;">
         
             
        
   <div class="modal-content">
-    <span class="close">&times;</span>
     <video id="popupVideo" autoplay
         muted 
         loop 
@@ -293,7 +264,6 @@
   
   
   .modal {
-    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -310,14 +280,6 @@
     text-align: center;
     padding:10px;
     z-index: 101;
-  }
-
-  .close {
-    position: absolute;
-    top: 0px;
-    right: 10px;
-    font-size: 24px;
-    cursor: pointer;
   }
 
  .modal video {
