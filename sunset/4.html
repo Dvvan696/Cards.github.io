@@ -21,12 +21,12 @@ let isVideoPlaying = false;
       const videoSource = document.getElementById("videoSource");
 
       this.el.addEventListener("targetFound", () => {
-        if (ignoreNextTargetFound) { // Проверяем, нужно ли игнорировать событие
-          ignoreNextTargetFound = false; // Сбрасываем флаг
+        if (ignoreNextTargetFound) { 
+          ignoreNextTargetFound = false;
           return;
         }
 
-        if (!isVideoPlaying) { // Проверяем, не запущено ли уже видео
+        if (!isVideoPlaying) {
           console.log(`Цель найдена: ${videoUrl}`);
           videoSource.src = videoUrl;
           videoElement.load();
@@ -51,7 +51,7 @@ let isVideoPlaying = false;
         modal.style.visibility = "hidden"; 
         videoElement.pause();
         videoElement.currentTime = 0;
-        isVideoPlaying = false; // Сбрасываем флаг при закрытии видео
+        isVideoPlaying = false;
       }
     },
   });
@@ -60,7 +60,7 @@ let isVideoPlaying = false;
     const modal = document.getElementById("videoModal");
     if (modal.style.display === "flex") {
       console.log("Поворот экрана: видео уже открыто, не перезапускаем MindAR");
-      return; // Если видео уже открыто, не перезапускаем систему
+      return;
     }
 
     const scene = document.querySelector("a-scene");
@@ -78,6 +78,7 @@ let isVideoPlaying = false;
     if (mindarSystem.stop) {
       mindarSystem.stop();
     }
+    ignoreNextTargetFound = true;
     isVideoPlaying = false;
 
 

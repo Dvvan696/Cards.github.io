@@ -1,196 +1,357 @@
+<!DOCTYPE html>
 <html lang="ru" class="text-[4.45vw] text-main-white font-Gilroy font-normal">
   <head>
-      <meta charset="UTF-8" />
-    <link href="/css/style.css" rel="stylesheet" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <link href="../css/style.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 viewport-fit=cover" />
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-    <script>
-      const playVideo = (videoId) => {
-        const video = document.querySelector(videoId);
-        if (video && video.paused) {
-          video.play().catch((error) => {
-            console.error(`Ошибка воспроизведения видео ${videoId}:`, error);
-          });
+
+<script>
+let ignoreNextTargetFound = false; // Добавляем переменную для отслеживания игнорирования события
+let isVideoPlaying = false;
+  AFRAME.registerComponent("mytarget", {
+    schema: {
+      videoUrl: { type: "string" },
+    },
+    init: function () {
+      const videoUrl = this.data.videoUrl;
+      const modal = document.getElementById("videoModal");
+      const videoElement = document.getElementById("popupVideo");
+      const videoSource = document.getElementById("videoSource");
+
+      this.el.addEventListener("targetFound", () => {
+        if (ignoreNextTargetFound) { 
+          ignoreNextTargetFound = false;
+          return;
         }
-      };
 
-      const pauseVideo = (videoId) => {
-        const video = document.querySelector(videoId);
-        if (video && !video.paused) {
-          video.pause();
+        if (!isVideoPlaying) {
+          console.log(`Цель найдена: ${videoUrl}`);
+          videoSource.src = videoUrl;
+          videoElement.load();
+          modal.style.visibility = "visible";
+          modal.style.display = "flex";
+          videoElement.play();
+          isVideoPlaying = true;
         }
-      };
-
-      AFRAME.registerComponent("mytarget", {
-        schema: {
-          videoId: { type: "string" },
-        },
-        init: function () {
-          const videoId = this.data.videoId;
-
-          this.el.addEventListener("targetFound", () => {
-            console.log(`Цель найдена: ${videoId}`);
-            playVideo(videoId);
-          });
-
-          this.el.addEventListener("targetLost", () => {
-            console.log(`Цель потеряна: ${videoId}`);
-            pauseVideo(videoId);
-          });
-        },
       });
-      window.onresize = async function () {
-  const scene = document.querySelector('a-scene');
-  if (!scene) {
-    console.error('Сцена не найдена');
-    return;
-  }
 
-  const mindarSystem = scene.systems["mindar-image-system"];
-  if (!mindarSystem) {
-    console.error('Система MindAR не найдена');
-    return;
-  }
+      this.el.addEventListener("targetLost", () => {
+        closeVideoModal();
+      });
 
-  if (mindarSystem.stop) {
-    mindarSystem.stop();
-  }
+      window.addEventListener("click", (event) => {
+        if (event.target === modal) {
+          closeVideoModal();
+        }
+      });
 
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  if (mindarSystem.start) {
-    mindarSystem.start();
-  }
-
-  // Обновляем матрицу для всех целей
-  const targets = document.querySelectorAll('[mindar-image-target]');
-  if (targets) {
-    targets.forEach((element) => {
-      if (element.components['mindar-image-target']) {
-        element.components['mindar-image-target'].updateWorldMatrix();
+      function closeVideoModal() {
+        modal.style.visibility = "hidden"; 
+        videoElement.pause();
+        videoElement.currentTime = 0;
+        isVideoPlaying = false;
       }
-    });
-  }
-};
-    </script>
+    },
+  });
+
+  window.onresize = async function () {
+    const modal = document.getElementById("videoModal");
+    if (modal.style.display === "flex") {
+      console.log("Поворот экрана: видео уже открыто, не перезапускаем MindAR");
+      return;
+    }
+
+    const scene = document.querySelector("a-scene");
+    if (!scene) {
+      console.error("Сцена не найдена");
+      return;
+    }
+
+    const mindarSystem = scene.systems["mindar-image-system"];
+    if (!mindarSystem) {
+      console.error("Система MindAR не найдена");
+      return;
+    }
+
+    if (mindarSystem.stop) {
+      mindarSystem.stop();
+    }
+    ignoreNextTargetFound = true;
+    isVideoPlaying = false;
+
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    if (mindarSystem.start) {
+      mindarSystem.start();
+    }
+
+
+    const targets = document.querySelectorAll("[mindar-image-target]");
+    if (targets) {
+      targets.forEach((element) => {
+        if (element.components["mindar-image-target"]) {
+          element.components["mindar-image-target"].updateWorldMatrix();
+        }
+      });
+    }
+  };
+</script>
+
   </head>
   <body class="bg-[url('/image/bg.png')] bg-cover">
-    <!-- Пятая сцена -->
-    <a-scene
+    <!-- Четвертая сцена -->
+    <a-scene style="
+        width:100vw!important;
+      "
       mindar-image="imageTargetSrc: targets1qr.mind; 
-      filterMinCF:0.005; 
-      filterBeta:0.7; 
+      filterMinCF:0.0001; 
+      filterBeta:0.1; 
       filterFrequency:40; 
       stabilizer:true; 
       missTolerance:20; 
-      warmupTolerance:10
-      uiError:no; 
+      warmupTolerance:10;
+       uiError:no; 
       uiLoading: #loading;
       uiScanning: #mindar-ui-overlay"
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false" 
     >
-      <a-assets>
-        <video
-          id="video5"
-          loop
-          muted
-          playsinline
-          crossorigin="anonymous"
-          src="1.mp4"
-        ></video>
-      </a-assets>
-
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity 
-        mytarget="videoId: #video5" 
-        mindar-image-target="targetIndex: 0">
-        <a-video
-          src="#video5"
-          position="0 0 0"
-          width="1.1"
-          height="0.733"
-          rotation="0 0 0"
-        ></a-video>
-      </a-entity>
+      mytarget="videoUrl: ../aurora_qr/1.mp4" 
+      mindar-image-target="targetIndex: 0">
+      <a-video
+        src="../aurora_qr/1.mp4"
+        position="0 0 0"
+        width="0.0" 
+        height="0.0" 
+        rotation="0 0 0"
+        autoplay
+        muted 
+        loop 
+        playsinline
+      ></a-video>
+    </a-entity>
     </a-scene>
     
-     <div id="mindar-ui-overlay" class="hidden mindar-ui-scanning" style="
-display:flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    background: transparent;
-    z-index: 2;">
-      
-      
-          <div
-      class="flex flex-col w-fit p-2.5  justify-center text-main-white border-1 border-main-white bg-main-black/25 rounded-10"
-      style="width: 16.5rem; font-size: 1.125rem; position: absolute;
-    top: 4rem;"
-      href="/1/1.html"
+    <div
+      id="mindar-ui-overlay"
+      class="hidden mindar-ui-scanning"
+      style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: transparent;
+        z-index: 2;
+        margin-top:0.5rem
+      "
     >
-      <div class="flex flex-row gap-2.5 items-center">
-          <svg style="width:1.3rem" viewBox="0 0 82 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M40.9567 0.417011C62.8429 0.417009 80.6323 18.2065 80.6323 40.0927C80.6323 61.9789 62.8429 79.7683 40.9567 79.7683C19.0705 79.7683 1.28102 61.9789 1.28102 40.0927C1.28102 18.2065 19.0705 0.417013 40.9567 0.417011ZM40.9567 74.2322C59.7795 74.2322 75.0962 58.9155 75.0962 40.0927C75.0962 21.2698 59.7795 5.95315 40.9567 5.95315C22.1338 5.95315 6.81716 21.2698 6.81716 40.0927C6.81716 58.9155 22.1338 74.2322 40.9567 74.2322ZM40.9567 33.6338C42.4699 33.6338 43.7248 34.8887 43.7248 36.4019L43.7248 54.8557C43.7248 56.3689 42.4699 57.6238 40.9567 57.6238C39.4435 57.6238 38.1886 56.3689 38.1886 54.8557L38.1886 36.4019C38.1886 34.8887 39.4435 33.6338 40.9567 33.6338ZM42.3592 21.9341C41.9163 21.7496 41.4365 21.6388 40.9567 21.6388C40.4769 21.6388 39.9971 21.7496 39.5542 21.9341C39.1113 22.1186 38.7053 22.377 38.3363 22.7092C38.0041 23.0782 37.7457 23.4473 37.5612 23.9271C37.3767 24.37 37.266 24.8498 37.266 25.3296C37.266 25.8094 37.3767 26.2892 37.5612 26.7321C37.7457 27.175 38.0041 27.581 38.3363 27.95C38.7053 28.2822 39.1113 28.5406 39.5542 28.7251C40.44 29.0942 41.4734 29.0942 42.3592 28.7251C42.8021 28.5406 43.2081 28.2822 43.5771 27.95C43.9093 27.581 44.1677 27.175 44.3522 26.7321C44.5367 26.2892 44.6475 25.8094 44.6475 25.3296C44.6475 24.8498 44.5367 24.37 44.3522 23.9271C44.1677 23.4473 43.9093 23.0782 43.5771 22.7092C43.2081 22.377 42.8021 22.1186 42.3592 21.9341Z" fill="white"/>
-<path d="M42.3592 21.9341L42.0753 22.6155L42.0753 22.6155L42.3592 21.9341ZM39.5542 21.9341L39.8381 22.6155L39.8381 22.6155L39.5542 21.9341ZM38.3363 22.7092L37.8425 22.1605L37.8136 22.1865L37.7876 22.2154L38.3363 22.7092ZM37.5612 23.9271L38.2426 24.211L38.2465 24.2016L38.2502 24.1921L37.5612 23.9271ZM37.5612 26.7321L36.8798 27.016L36.8798 27.016L37.5612 26.7321ZM38.3363 27.95L37.7876 28.4438L37.8136 28.4727L37.8425 28.4987L38.3363 27.95ZM39.5542 28.7251L39.2703 29.4065L39.2703 29.4065L39.5542 28.7251ZM42.3592 28.7251L42.6431 29.4065L42.6431 29.4065L42.3592 28.7251ZM43.5771 27.95L44.0709 28.4987L44.0998 28.4727L44.1258 28.4438L43.5771 27.95ZM44.3522 26.7321L43.6708 26.4482L43.6708 26.4482L44.3522 26.7321ZM44.3522 23.9271L43.6633 24.1921L43.6669 24.2016L43.6708 24.211L44.3522 23.9271ZM43.5771 22.7092L44.1258 22.2154L44.0998 22.1865L44.0709 22.1605L43.5771 22.7092ZM81.3705 40.0927C81.3705 17.7988 63.2505 -0.321143 40.9567 -0.321141L40.9567 1.15516C62.4352 1.15516 79.8942 18.6141 79.8942 40.0927L81.3705 40.0927ZM40.9567 80.5065C63.2505 80.5065 81.3705 62.3865 81.3705 40.0927L79.8942 40.0927C79.8942 61.5712 62.4352 79.0302 40.9567 79.0302L40.9567 80.5065ZM0.542866 40.0927C0.542868 62.3865 18.6628 80.5065 40.9567 80.5065L40.9567 79.0302C19.4781 79.0302 2.01917 61.5712 2.01917 40.0927L0.542866 40.0927ZM40.9567 -0.321141C18.6628 -0.321139 0.542864 17.7988 0.542866 40.0927L2.01917 40.0927C2.01917 18.6141 19.4781 1.15516 40.9567 1.15516L40.9567 -0.321141ZM74.358 40.0927C74.358 58.5079 59.3719 73.494 40.9567 73.494L40.9567 74.9703C60.1872 74.9703 75.8343 59.3232 75.8343 40.0927L74.358 40.0927ZM40.9567 6.6913C59.3719 6.6913 74.358 21.6775 74.358 40.0927L75.8343 40.0927C75.8343 20.8621 60.1872 5.215 40.9567 5.215L40.9567 6.6913ZM7.55531 40.0927C7.55531 21.6775 22.5415 6.6913 40.9567 6.6913L40.9567 5.215C21.7261 5.215 6.079 20.8621 6.07901 40.0927L7.55531 40.0927ZM40.9567 73.494C22.5415 73.494 7.55531 58.5079 7.55531 40.0927L6.07901 40.0927C6.07901 59.3232 21.7261 74.9703 40.9567 74.9703L40.9567 73.494ZM44.4629 36.4019C44.4629 34.481 42.8776 32.8957 40.9567 32.8957L40.9567 34.372C42.0623 34.372 42.9866 35.2964 42.9866 36.4019L44.4629 36.4019ZM44.4629 54.8557L44.4629 36.4019L42.9866 36.4019L42.9866 54.8557L44.4629 54.8557ZM40.9567 58.3619C42.8776 58.3619 44.4629 56.7766 44.4629 54.8557L42.9866 54.8557C42.9866 55.9612 42.0623 56.8856 40.9567 56.8856L40.9567 58.3619ZM37.4505 54.8557C37.4505 56.7766 39.0358 58.3619 40.9567 58.3619L40.9567 56.8856C39.8512 56.8856 38.9268 55.9612 38.9268 54.8557L37.4505 54.8557ZM37.4505 36.4019L37.4505 54.8557L38.9268 54.8557L38.9268 36.4019L37.4505 36.4019ZM40.9567 32.8957C39.0358 32.8957 37.4505 34.481 37.4505 36.4019L38.9268 36.4019C38.9268 35.2964 39.8512 34.372 40.9567 34.372L40.9567 32.8957ZM40.9567 22.377C41.3245 22.377 41.7079 22.4624 42.0753 22.6155L42.6431 21.2527C42.1247 21.0367 41.5485 20.9007 40.9567 20.9007L40.9567 22.377ZM39.8381 22.6155C40.2055 22.4624 40.5889 22.377 40.9567 22.377L40.9567 20.9007C40.3649 20.9007 39.7887 21.0367 39.2703 21.2527L39.8381 22.6155ZM38.8301 23.2578C39.1394 22.9795 39.4749 22.7668 39.8381 22.6155L39.2703 21.2527C38.7478 21.4705 38.2713 21.7745 37.8425 22.1605L38.8301 23.2578ZM38.2502 24.1921C38.3933 23.82 38.5936 23.5267 38.8849 23.203L37.7876 22.2154C37.4146 22.6298 37.0982 23.0746 36.8723 23.6621L38.2502 24.1921ZM38.0041 25.3296C38.0041 24.9618 38.0895 24.5784 38.2426 24.211L36.8798 23.6432C36.6638 24.1616 36.5278 24.7378 36.5278 25.3296L38.0041 25.3296ZM38.2426 26.4482C38.0895 26.0808 38.0041 25.6974 38.0041 25.3296L36.5278 25.3296C36.5278 25.9214 36.6638 26.4976 36.8798 27.016L38.2426 26.4482ZM38.8849 27.4562C38.6066 27.1469 38.3939 26.8114 38.2426 26.4482L36.8798 27.016C37.0976 27.5385 37.4016 28.015 37.7876 28.4438L38.8849 27.4562ZM39.8381 28.0437C39.4749 27.8924 39.1394 27.6797 38.8301 27.4014L37.8425 28.4987C38.2713 28.8847 38.7478 29.1888 39.2703 29.4065L39.8381 28.0437ZM42.0753 28.0437C41.3712 28.3371 40.5422 28.3371 39.8381 28.0437L39.2703 29.4065C40.3378 29.8513 41.5756 29.8513 42.6431 29.4065L42.0753 28.0437ZM43.0834 27.4014C42.7741 27.6797 42.4386 27.8924 42.0753 28.0437L42.6431 29.4065C43.1656 29.1888 43.6421 28.8847 44.0709 28.4987L43.0834 27.4014ZM43.6708 26.4482C43.5195 26.8115 43.3069 27.1469 43.0285 27.4562L44.1258 28.4438C44.5118 28.015 44.8159 27.5385 45.0336 27.016L43.6708 26.4482ZM43.9093 25.3296C43.9093 25.6974 43.8239 26.0808 43.6708 26.4482L45.0336 27.016C45.2496 26.4976 45.3856 25.9214 45.3856 25.3296L43.9093 25.3296ZM43.6708 24.211C43.8239 24.5784 43.9093 24.9618 43.9093 25.3296L45.3856 25.3296C45.3856 24.7378 45.2496 24.1616 45.0336 23.6432L43.6708 24.211ZM43.0285 23.203C43.3198 23.5267 43.5202 23.82 43.6633 24.1921L45.0412 23.6621C44.8152 23.0746 44.4988 22.6298 44.1258 22.2154L43.0285 23.203ZM42.0753 22.6155C42.4386 22.7668 42.774 22.9795 43.0834 23.2578L44.0709 22.1605C43.6421 21.7745 43.1656 21.4705 42.6431 21.2527L42.0753 22.6155Z" fill="white"/>
-</svg> Подсказка</div>
-<span style="font-size: 0.875rem;" >Наведите камеру на открытку</span>
+      <div
+        class="flex flex-col w-fit justify-center text-main-white border-1 border-main-white bg-main-black/25 rounded-10"
+        style="
+          width: 9.5rem;
+          font-size: 0.725rem;
+          position: absolute;
+          top: 0.42rem;
+          padding: 0.25rem;
+        "
+      >
+        <div style="font-size: 0.5rem" class="flex flex-row gap-2.5 items-center">
+          <svg
+            style="width: 0.75rem"
+            viewBox="0 0 82 80"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M40.9567 0.417011C62.8429 0.417009 80.6323 18.2065 80.6323 40.0927C80.6323 61.9789 62.8429 79.7683 40.9567 79.7683C19.0705 79.7683 1.28102 61.9789 1.28102 40.0927C1.28102 18.2065 19.0705 0.417013 40.9567 0.417011ZM40.9567 74.2322C59.7795 74.2322 75.0962 58.9155 75.0962 40.0927C75.0962 21.2698 59.7795 5.95315 40.9567 5.95315C22.1338 5.95315 6.81716 21.2698 6.81716 40.0927C6.81716 58.9155 22.1338 74.2322 40.9567 74.2322ZM40.9567 33.6338C42.4699 33.6338 43.7248 34.8887 43.7248 36.4019L43.7248 54.8557C43.7248 56.3689 42.4699 57.6238 40.9567 57.6238C39.4435 57.6238 38.1886 56.3689 38.1886 54.8557L38.1886 36.4019C38.1886 34.8887 39.4435 33.6338 40.9567 33.6338ZM42.3592 21.9341C41.9163 21.7496 41.4365 21.6388 40.9567 21.6388C40.4769 21.6388 39.9971 21.7496 39.5542 21.9341C39.1113 22.1186 38.7053 22.377 38.3363 22.7092C38.0041 23.0782 37.7457 23.4473 37.5612 23.9271C37.3767 24.37 37.266 24.8498 37.266 25.3296C37.266 25.8094 37.3767 26.2892 37.5612 26.7321C37.7457 27.175 38.0041 27.581 38.3363 27.95C38.7053 28.2822 39.1113 28.5406 39.5542 28.7251C40.44 29.0942 41.4734 29.0942 42.3592 28.7251C42.8021 28.5406 43.2081 28.2822 43.5771 27.95C43.9093 27.581 44.1677 27.175 44.3522 26.7321C44.5367 26.2892 44.6475 25.8094 44.6475 25.3296C44.6475 24.8498 44.5367 24.37 44.3522 23.9271C44.1677 23.4473 43.9093 23.0782 43.5771 22.7092C43.2081 22.377 42.8021 22.1186 42.3592 21.9341Z"
+              fill="white"
+            />
+            <path
+              d="M42.3592 21.9341L42.0753 22.6155L42.0753 22.6155L42.3592 21.9341ZM39.5542 21.9341L39.8381 22.6155L39.8381 22.6155L39.5542 21.9341ZM38.3363 22.7092L37.8425 22.1605L37.8136 22.1865L37.7876 22.2154L38.3363 22.7092ZM37.5612 23.9271L38.2426 24.211L38.2465 24.2016L38.2502 24.1921L37.5612 23.9271ZM37.5612 26.7321L36.8798 27.016L36.8798 27.016L37.5612 26.7321ZM38.3363 27.95L37.7876 28.4438L37.8136 28.4727L37.8425 28.4987L38.3363 27.95ZM39.5542 28.7251L39.2703 29.4065L39.2703 29.4065L39.5542 28.7251ZM42.3592 28.7251L42.6431 29.4065L42.6431 29.4065L42.3592 28.7251ZM43.5771 27.95L44.0709 28.4987L44.0998 28.4727L44.1258 28.4438L43.5771 27.95ZM44.3522 26.7321L43.6708 26.4482L43.6708 26.4482L44.3522 26.7321ZM44.3522 23.9271L43.6633 24.1921L43.6669 24.2016L43.6708 24.211L44.3522 23.9271ZM43.5771 22.7092L44.1258 22.2154L44.0998 22.1865L44.0709 22.1605L43.5771 22.7092ZM81.3705 40.0927C81.3705 17.7988 63.2505 -0.321143 40.9567 -0.321141L40.9567 1.15516C62.4352 1.15516 79.8942 18.6141 79.8942 40.0927L81.3705 40.0927ZM40.9567 80.5065C63.2505 80.5065 81.3705 62.3865 81.3705 40.0927L79.8942 40.0927C79.8942 61.5712 62.4352 79.0302 40.9567 79.0302L40.9567 80.5065ZM0.542866 40.0927C0.542868 62.3865 18.6628 80.5065 40.9567 80.5065L40.9567 79.0302C19.4781 79.0302 2.01917 61.5712 2.01917 40.0927L0.542866 40.0927ZM40.9567 -0.321141C18.6628 -0.321139 0.542864 17.7988 0.542866 40.0927L2.01917 40.0927C2.01917 18.6141 19.4781 1.15516 40.9567 1.15516L40.9567 -0.321141ZM74.358 40.0927C74.358 58.5079 59.3719 73.494 40.9567 73.494L40.9567 74.9703C60.1872 74.9703 75.8343 59.3232 75.8343 40.0927L74.358 40.0927ZM40.9567 6.6913C59.3719 6.6913 74.358 21.6775 74.358 40.0927L75.8343 40.0927C75.8343 20.8621 60.1872 5.215 40.9567 5.215L40.9567 6.6913ZM7.55531 40.0927C7.55531 21.6775 22.5415 6.6913 40.9567 6.6913L40.9567 5.215C21.7261 5.215 6.079 20.8621 6.07901 40.0927L7.55531 40.0927ZM40.9567 73.494C22.5415 73.494 7.55531 58.5079 7.55531 40.0927L6.07901 40.0927C6.07901 59.3232 21.7261 74.9703 40.9567 74.9703L40.9567 73.494ZM44.4629 36.4019C44.4629 34.481 42.8776 32.8957 40.9567 32.8957L40.9567 34.372C42.0623 34.372 42.9866 35.2964 42.9866 36.4019L44.4629 36.4019ZM44.4629 54.8557L44.4629 36.4019L42.9866 36.4019L42.9866 54.8557L44.4629 54.8557ZM40.9567 58.3619C42.8776 58.3619 44.4629 56.7766 44.4629 54.8557L42.9866 54.8557C42.9866 55.9612 42.0623 56.8856 40.9567 56.8856L40.9567 58.3619ZM37.4505 54.8557C37.4505 56.7766 39.0358 58.3619 40.9567 58.3619L40.9567 56.8856C39.8512 56.8856 38.9268 55.9612 38.9268 54.8557L37.4505 54.8557ZM37.4505 36.4019L37.4505 54.8557L38.9268 54.8557L38.9268 36.4019L37.4505 36.4019ZM40.9567 32.8957C39.0358 32.8957 37.4505 34.481 37.4505 36.4019L38.9268 36.4019C38.9268 35.2964 39.8512 34.372 40.9567 34.372L40.9567 32.8957ZM40.9567 22.377C41.3245 22.377 41.7079 22.4624 42.0753 22.6155L42.6431 21.2527C42.1247 21.0367 41.5485 20.9007 40.9567 20.9007L40.9567 22.377ZM39.8381 22.6155C40.2055 22.4624 40.5889 22.377 40.9567 22.377L40.9567 20.9007C40.3649 20.9007 39.7887 21.0367 39.2703 21.2527L39.8381 22.6155ZM38.8301 23.2578C39.1394 22.9795 39.4749 22.7668 39.8381 22.6155L39.2703 21.2527C38.7478 21.4705 38.2713 21.7745 37.8425 22.1605L38.8301 23.2578ZM38.2502 24.1921C38.3933 23.82 38.5936 23.5267 38.8849 23.203L37.7876 22.2154C37.4146 22.6298 37.0982 23.0746 36.8723 23.6621L38.2502 24.1921ZM38.0041 25.3296C38.0041 24.9618 38.0895 24.5784 38.2426 24.211L36.8798 23.6432C36.6638 24.1616 36.5278 24.7378 36.5278 25.3296L38.0041 25.3296ZM38.2426 26.4482C38.0895 26.0808 38.0041 25.6974 38.0041 25.3296L36.5278 25.3296C36.5278 25.9214 36.6638 26.4976 36.8798 27.016L38.2426 26.4482ZM38.8849 27.4562C38.6066 27.1469 38.3939 26.8114 38.2426 26.4482L36.8798 27.016C37.0976 27.5385 37.4016 28.015 37.7876 28.4438L38.8849 27.4562ZM39.8381 28.0437C39.4749 27.8924 39.1394 27.6797 38.8301 27.4014L37.8425 28.4987C38.2713 28.8847 38.7478 29.1888 39.2703 29.4065L39.8381 28.0437ZM42.0753 28.0437C41.3712 28.3371 40.5422 28.3371 39.8381 28.0437L39.2703 29.4065C40.3378 29.8513 41.5756 29.8513 42.6431 29.4065L42.0753 28.0437ZM43.0834 27.4014C42.7741 27.6797 42.4386 27.8924 42.0753 28.0437L42.6431 29.4065C43.1656 29.1888 43.6421 28.8847 44.0709 28.4987L43.0834 27.4014ZM43.6708 26.4482C43.5195 26.8115 43.3069 27.1469 43.0285 27.4562L44.1258 28.4438C44.5118 28.015 44.8159 27.5385 45.0336 27.016L43.6708 26.4482ZM43.9093 25.3296C43.9093 25.6974 43.8239 26.0808 43.6708 26.4482L45.0336 27.016C45.2496 26.4976 45.3856 25.9214 45.3856 25.3296L43.9093 25.3296ZM43.6708 24.211C43.8239 24.5784 43.9093 24.9618 43.9093 25.3296L45.3856 25.3296C45.3856 24.7378 45.2496 24.1616 45.0336 23.6432L43.6708 24.211ZM43.0285 23.203C43.3198 23.5267 43.5202 23.82 43.6633 24.1921L45.0412 23.6621C44.8152 23.0746 44.4988 22.6298 44.1258 22.2154L43.0285 23.203ZM42.0753 22.6155C42.4386 22.7668 42.774 22.9795 43.0834 23.2578L44.0709 22.1605C43.6421 21.7745 43.1656 21.4705 42.6431 21.2527L42.0753 22.6155Z"
+              fill="white"
+            />
+          </svg>
+          
+          <div class="scan-img">
+       <img  src="/image/scan.png" alt="" />
+</div>
+          Наведите камеру на открытку
+        </div>
+        
+      </div>
+<!--     <div class=" mindar-ui-scanning flex-col" style="-->
+<!--    display: flex;-->
+<!--    align-items: center;-->
+<!--    justify-content: center;-->
+<!--    position: absolute;-->
+<!--    left: 0;-->
+<!--    right: 0;-->
+<!--    top: 0;-->
+<!--    bottom: 0;-->
+<!--    background: transparent;-->
+<!--    z-index: 2;-->
+<!--">-->
+    
+<!--  <div class="scanning">-->
+<!--<svg style="      margin: 2.5rem auto 0px;-->
+<!--    width: 100%;-->
+<!--    height: 4rem;" viewBox="0 0 131 131" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">-->
+<!--<rect width="131" height="131" fill="url(#pattern0_2019_6)"/>-->
+<!--<defs>-->
+<!--<pattern id="pattern0_2019_6" patternContentUnits="objectBoundingBox" width="1" height="1">-->
+<!--<use xlink:href="#image0_2019_6" transform="scale(0.00763359)"/>-->
+<!--</pattern>-->
+<!--<image id="image0_2019_6" width="131" height="131" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAACDCAYAAACunahmAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMTSURBVHgB7d2NUdtAEIbhlRvAJbgDSAVRKsAdhFQQUgHuAFOBKSEdKB0kqUDqAHew2cNiA+c7BzJGss/vM3Mjox8saT+kQzOSKnkDVZ3aYCrDWVdVtZZC2P6byYBs33WyT7YBtbWltVbHcSsFsO1Y6Th+9t9dy//STQgaPQy1HDHd7MtD0OqOfTnJrPyNDRpr2QUHdibYh5m1pq/vv+l4h7OcRgqgm1PtIVnF61hFKxwSs0hsS+jE3Vn71bfB7L0TNCIdvgM+sza3dtl/ji1t/37bGmsrepFJ0LLfCBwxq+EiU986NXObmPFaUAyr51Wixm08U6q3uxAUR9N9l/r5DPc704JihFO+tYeo3o+dyad/Lc+jZX4IitRf0b2LRs/9087DBoqT6RZMJ5q+Xt4JStYlxk0nAvQIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIA1wuDMU8bg9J+frqy6e6LQXFix7D0MQT59x9fVr6ml8JAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4SuFdE7xv4rQka24jbp+9lWQlKF5U8+Zp5FS3zQTFytU8vLBsKjg1yZrzKkM4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgAXwrBOjD8XlGyWGLeeVFUVwtBFEz4ISnYR/bzuc/B4V+59dEfuQ7hTV1Akq20b1fv784l14hbtW0FxrK43iVpfxjM1iZk+C4oR6pmocZuaMXV0CG4ERy9zRHjxB19FCyxt8DXxuzprYdpv2e5svqe/HZsC6KYfNmRfbGbto7XrzPfe2f69zi6t253JsRXRd7HtWOlhuX/tii/0sNRyxDR/Ch7LMrWeySuQduhY2OCLDHtK2OVMsA+dtU87Tw27WIrmujl1tDqORgqg451+wzWjlb7i6FrJG+jwHaBwlOqkEDr8IxXf1AH/A7zTAkuLgh0aAAAAAElFTkSuQmCC"/>-->
+<!--</defs>-->
+<!--</svg>-->
+<!--</div>-->
+<!--</div>-->
     </div>
     
-      <div class=" mindar-ui-scanning flex-col" style="
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    background: transparent;
-    z-index: 2;
-">
-    
-  <div class="scanning">
-<svg style="      margin: 4.5rem auto 0px;
-    width: 100%;
-    height: 8rem;" viewBox="0 0 131 131" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<rect width="131" height="131" fill="url(#pattern0_2019_6)"/>
-<defs>
-<pattern id="pattern0_2019_6" patternContentUnits="objectBoundingBox" width="1" height="1">
-<use xlink:href="#image0_2019_6" transform="scale(0.00763359)"/>
-</pattern>
-<image id="image0_2019_6" width="131" height="131" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAACDCAYAAACunahmAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMTSURBVHgB7d2NUdtAEIbhlRvAJbgDSAVRKsAdhFQQUgHuAFOBKSEdKB0kqUDqAHew2cNiA+c7BzJGss/vM3Mjox8saT+kQzOSKnkDVZ3aYCrDWVdVtZZC2P6byYBs33WyT7YBtbWltVbHcSsFsO1Y6Th+9t9dy//STQgaPQy1HDHd7MtD0OqOfTnJrPyNDRpr2QUHdibYh5m1pq/vv+l4h7OcRgqgm1PtIVnF61hFKxwSs0hsS+jE3Vn71bfB7L0TNCIdvgM+sza3dtl/ji1t/37bGmsrepFJ0LLfCBwxq+EiU986NXObmPFaUAyr51Wixm08U6q3uxAUR9N9l/r5DPc704JihFO+tYeo3o+dyad/Lc+jZX4IitRf0b2LRs/9087DBoqT6RZMJ5q+Xt4JStYlxk0nAvQIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIA1wuDMU8bg9J+frqy6e6LQXFix7D0MQT59x9fVr6ml8JAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4SuFdE7xv4rQka24jbp+9lWQlKF5U8+Zp5FS3zQTFytU8vLBsKjg1yZrzKkM4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgBHGOAIAxxhgCMMcIQBjjDAEQY4wgAXwrBOjD8XlGyWGLeeVFUVwtBFEz4ISnYR/bzuc/B4V+59dEfuQ7hTV1Akq20b1fv784l14hbtW0FxrK43iVpfxjM1iZk+C4oR6pmocZuaMXV0CG4ERy9zRHjxB19FCyxt8DXxuzprYdpv2e5svqe/HZsC6KYfNmRfbGbto7XrzPfe2f69zi6t253JsRXRd7HtWOlhuX/tii/0sNRyxDR/Ch7LMrWeySuQduhY2OCLDHtK2OVMsA+dtU87Tw27WIrmujl1tDqORgqg451+wzWjlb7i6FrJG+jwHaBwlOqkEDr8IxXf1AH/A7zTAkuLgh0aAAAAAElFTkSuQmCC"/>
-</defs>
-</svg>
-</div></div>
-  </div>
+
   
-    <style>.hidden{display:none!important}
-  </style>
     
-        <div id="loading"
-    class="bg-[url('/image/bg.png')] bg-cover flex flex-col min-h-dvh px-12 pt-20 pb-36 gap-6 text-center justify-between items-center"
-  >
-    <a class="mb-7" href="/">
-      <img class="w-36" src="/image/logo.png" alt="" />
-    </a>
-
-    <div class="py-3">
-      <p class="text-f16 font-medium mb-6 m-auto leading-normal">
-        Загрузка приложения
-      </p>
-
-      <img class="m-auto w-24 animate-spin2" src="/image/loading.png" alt="" />
-    </div>
+    <div id="videoModal" class="modal" style="display: none;">
+        
+            
+       
+  <div class="modal-content">
+    <video id="popupVideo" autoplay
+        muted 
+        loop 
+        playsinline>
+      <source id="videoSource" src="1.mp4" type="">
+      Ваш браузер не поддерживает видео.
+    </video>
   </div>
+<!--  <div class="scan-img">-->
+<!--       <img  src="/image/scan.png" alt="" />-->
+<!--</div>-->
+</div>
+
+<style>
+  /* Стили для попапа */
+  
+  .scan-img {
+    display: flex;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: -2%;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+  
+    .scan-img img {
+    position: relative;
+    max-width: 55%;
+    text-align: center;
+  }
+  
+  
+  
+  .modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    position: relative;
+    max-width: 54%;
+    text-align: center;
+    padding:10px;
+    z-index: 101;
+  }
+
+ .modal video {
+    width: 100%;
+    max-width: 600px;
+  }
+  
+  .hidden{display:none!important}
+</style>
+  
+   
+    
+    <div id="loading"
+      class="bg-[url('/image/bg.png')] bg-cover flex flex-col min-h-dvh px-12 pt-20 pb-36 gap-6 text-center justify-between items-center"
+    >
+      <a class="mb-7" href="/">
+        <img class="w-36" src="/image/logo.png" alt="" />
+      </a>
+
+      <div class="py-3">
+        <p class="text-f16 font-medium mb-6 m-auto leading-normal">
+          Загрузка приложения
+        </p>
+
+        <img class="m-auto w-24 animate-spin2" src="/image/loading.png" alt="" />
+      </div>
+    </div>
+    
+    <div id="rotate-overlay">
+    <div class="bg-[url('/image/bg.png')] bg-cover flex flex-col px-12 pt-20  gap-6 text-center justify-center items-center">
+      Поверните экран горизонтально для лучшего опыта
+    </div>
+    </div>
+   
+    <style>
+      #rotate-overlay {
+        position: fixed;
+        top: -14vh;
+        left: 0;
+        width: 100vw;
+        height: 128vh;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-size: 1.5rem;
+        z-index: 1000;
+        display: none;
+      }
+      #rotate-overlay > div{
+          height:100%;
+          padding-bottom:20rem;
+      }
+      
+    </style>
+    <script>
+      function checkOrientation() {
+        const overlay = document.getElementById("rotate-overlay");
+        if (window.innerWidth < window.innerHeight) {
+          overlay.style.display = "flex";
+        } else {
+          overlay.style.display = "none";
+        }
+      }
+
+      // Проверка ориентации при загрузке и изменении размеров окна
+      window.addEventListener("load", checkOrientation);
+      window.addEventListener("resize", checkOrientation);
+    </script>
   </body>
 </html>
